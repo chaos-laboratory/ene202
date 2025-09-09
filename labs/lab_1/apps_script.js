@@ -1,8 +1,8 @@
 function collectData() {
   var sheet = SpreadsheetApp.getActiveSheet();
   try {
-    var device_id = "YOUR_TOKEN_HERE"
-    var token = "CLASS_TOKEN_HERE"
+    var device_id = "YOUR_DEVICE_ID";
+    var token = "CLASS_TOKEN_HERE";
     var response = UrlFetchApp.fetch(
       `https://api.particle.io/v1/devices/${device_id}/temp?`,
       {
