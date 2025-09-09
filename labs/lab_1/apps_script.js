@@ -16,6 +16,6 @@ function collectData() {
     var data = payload.result;
     sheet.appendRow([timestamp, data]); // append the date, data1, data2 to the sheet
   } catch (e) {
-    Logger.log("Could not connect to Particle.io");
+    Logger.log("Could not connect to Particle.io. Check your device_id and token.");
   }
 }
