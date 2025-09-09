@@ -1,11 +1,13 @@
 function collectData() {
   var sheet = SpreadsheetApp.getActiveSheet();
   try {
+    var device_id = "YOUR_TOKEN_HERE"
+    var token = "CLASS_TOKEN_HERE"
     var response = UrlFetchApp.fetch(
-      "https://api.particle.io/v1/devices/0a10aced202194944a06743c/temp?",
+      `https://api.particle.io/v1/devices/${device_id}/temp?`,
       {
         headers: {
-          Authorization: "Bearer 8a2b7a6da0f10555a431700877dd7facc0f2bb1a",
+          Authorization: `Bearer ${token}`,
         },
       }
     );
