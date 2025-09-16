@@ -1,10 +1,10 @@
 function collectData() {
   var sheet = SpreadsheetApp.getActiveSheet();
   try {
-    var device_id = "0a10aced202194944a06743c"; // Input your device ID
-    var token = "af35f9f7bc71feaa9fff4cae9e6f8410594f7890"; // Input the token
-    var label1 = "temp"; // Input the first variable name from your Particle code
-    var label2 = "humid"; // Input the second variable name from your Particle code
+    var device_id = "DeviceID"; // Input your device ID
+    var token = "token"; // Input the token
+    var label1 = "label1"; // Input the first variable name from your Particle code
+    var label2 = "label2"; // Input the second variable name from your Particle code
 
 
     // This snippet now fetches only the data from the variable in your particle code that has been labeled 'label1', and saves it to the variable data1
