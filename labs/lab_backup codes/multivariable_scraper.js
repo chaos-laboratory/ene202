@@ -12,6 +12,16 @@ var token = "A_VALID_TOKEN";
 */
 var all_labels = ["LABEL_1", "LABEL_2", "LABEL_N"]; 
 
+/*
+  enter all your data labels from your firmware here. E.g., 
+  if you have the line:
+
+    Particle.variable("therm", therm);
+    
+  you label is "term".
+*/
+var all_labels = ["temp", "humid", "therm"]; // add or remove labels in quotes as needed
+
 // this function should be run on a timer-based trigger
 function collectData() {
   var sheet = SpreadsheetApp.getActiveSheet();
@@ -22,6 +32,7 @@ function collectData() {
       data.push(individual_value);
     } catch (e) {
       Logger.log(e);
+      data.push("error"); // saves a blank cell if there was an error
     }
   }
 
