@@ -6,10 +6,13 @@ var token = "A_VALID_TOKEN";
 // Enter all your data labels from your firmware in all_labels.
 // E.g., if you have the lines:
 //
-//   Particle.variable("therm", thermistor);
+//   Particle.variable("temp", temp);
 //   Particle.variable("humid", humidity);
+//   Particle.variable("therm", thermistor);
 //
-// all_labels should be ["term", "humid"].
+// all_labels should be ["temp", "humid", "therm"].
+// 
+// you could also choose to only record one of those variables, and recording just one is ok too.
 var all_labels = ["LABEL_1", "LABEL_2", "LABEL_N"]; 
 
 // == NO CHANGES BELOW HERE ==
