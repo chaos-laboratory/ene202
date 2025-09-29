@@ -1,0 +1,118 @@
+//Code for running MLX surface temp, SHT temp+humid sensor, and thermistor 
+
+// This #include statement was automatically added by the Particle IDE.
+#include <adafruit-sht31.h>
+
+// This #include statement was automatically added by the Particle IDE.
+#include <Adafruit_MLX90614.h>
+
+// Include Particle Device OS APIs
+#include "Particle.h"
+
+
+int sample_rate = 2*1000; //the rate at which the sensor will collect and publish data to the internet
+//pro tip: keep the 1000. particle time is in milliseconds, so a delay rate of
+//5 seconds needs to be coded as 5000, this the *1000
+
+//setup an object to access SHT library and read temp and humid over I2C on SDA and SCL
+Adafruit_SHT31 sht31 = Adafruit_SHT31();
+
+double humidity;
+double temp;
+
+//setup an object to access MLX library and read surface and ambient data  over I2C on SDA and SCL
+Adafruit_MLX90614 mlx = Adafruit_MLX90614();
+
+double objectT = 0;
+double ambientT = 0;
+
+//for thermistor calcs constants
+//defined constants
+#define TEMPERATURENOMINAL 25   
+// how many samples to take and average, more takes longer
+// but is more 'smooth'
+#define NUMSAMPLES 5
+// The beta coefficient of the thermistor (usually 3000-4000) - smooths the data
+#define BCOEFFICIENT 3950
+// the value of the 'other' resistor
+#define SERIESRESISTOR 10000  
+uint16_t samples[NUMSAMPLES];
+  uint8_t i;
+  float average;
+ 
+// What pin to connect the sensor to
+int globePin = A0; 
+
+//global variable definition for the temperature
+double temperature = 0;
+
+
+//setup loop - this always runs once when the device first starts up
+void setup() {
+
+    sht31.begin(0x44);
+    mlx.begin();
+    Particle.variable("temp", temp);
+    Particle.variable("humid",humidity);
+    Particle.variable("object", objectT);
+    Particle.variable("ambient", ambientT);
+    Particle.variable("therm", temperature);
+
+}
+
+//void loop. this runs continuously, so we use a delay to prevent your Argon
+//from freezing and to prevent a TON of data being sent to the cloud. You can
+//customize this rate by changing the value of sample_rate above.
+void loop() {
+    //read data from the SHT sensor
+    temp = double(sht31.readTemperature());
+    humidity = double(sht31.readHumidity());
+    
+    ambientT = mlx.readAmbientTempC();
+    objectT = mlx.readObjectTempC();
+    
+    //read data from the thermistor
+    temperature = therm(globePin); //read the thermistor from the thermistor pin
+    delay(sample_rate);//customizable delay set above in milliseconds
+}
+
+
+//this is the function that measures the voltage across the thermistor and 
+//calcualtes the resistance. a number of samples are collected and averaged,
+//NUMSAMPLES specifies this number above, to smooth noise
+double therm(int pin) {
+  
+  // take N samples in a row, with a slight delay
+  for (i=0; i< NUMSAMPLES; i++) {
+   samples[i] = analogRead(pin);
+   delay(10);
+  }
+ 
+  // average all the samples out
+  average = 0;
+  for (i=0; i< NUMSAMPLES; i++) {
+     average += samples[i];
+  }
+  average /= NUMSAMPLES;
+  
+  double reading = average;
+
+ 
+  // convert the value to resistance
+  reading = (4095 / reading)  - 1;     // (4095/ADC - 1) 
+  reading = SERIESRESISTOR / reading;  // 10K / (1023/ADC - 1)
+  
+  //the steinart method is a standard method of mapping the resistance reading
+  //to a temperature
+  float steinhart;
+  steinhart = reading / SERIESRESISTOR;     // (R/Ro)
+  steinhart = log(steinhart);                  // ln(R/Ro)
+  steinhart /= BCOEFFICIENT;                   // 1/B * ln(R/Ro)
+  steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
+  steinhart = 1.0 / steinhart;                 // Invert
+  steinhart -= 273.15;                         // convert to C
+  
+  
+//return the calculated value, which is a temperature!  
+  return steinhart;
+}
