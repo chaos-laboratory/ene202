@@ -1,42 +1,45 @@
-//libraries that must be included
-
+// Include Particle Device OS APIs
+#include "Particle.h"
 #include <math.h>
 
-/*
-  The analogWrite() function uses PWM, so if you want to change the pin you're
-  using, be sure to use another PWM capable pin. On most Arduino, the PWM pins
-  are identified with a "~" sign, like ~3, ~5, ~6, ~9, ~10 and ~11.
-  This example code is in the public domain: https://docs.arduino.cc/built-in-examples/basics/Fade
-*/
+// Let Device OS manage the connection to the Particle Cloud
+SYSTEM_MODE(AUTOMATIC);
 
-// What pin to connect the sensor to
-int thermPin = A0; 
+// Show system, cloud connectivity, and application logs over USB
+// View logs with CLI using 'particle serial monitor --follow'
+SerialLogHandler logHandler(LOG_LEVEL_INFO);
 
-//global variable definition for the temperature
+//---------------------------------------------------------------------------
+
+int thermPin = A0;
+int sample_rate = 3*1000;
 double temperature = 0;
+int threshold = 29;
 
-// how often data is collected (ms)
-// int sample_rate = 1*1000;
-
-
-//defined constants
 #define TEMPERATURENOMINAL 25   
-// how many samples to take and average, more takes longer
-// but is more 'smooth'
 #define NUMSAMPLES 5
-// The beta coefficient of the thermistor (usually 3000-4000)
 #define BCOEFFICIENT 3950
-// the value of the 'other' resistor
 #define SERIESRESISTOR 10000  
+
 uint16_t samples[NUMSAMPLES];
-  uint8_t i;
-  float average;
+uint8_t i;
+float average;
+
+//---------------------------------------------------------------------------
+
+void setup() {
+    Particle.variable("thermistor", temperature);
+}
+
+void loop() {
+    temperature = therm(thermPin);
+    if(temperature >= threshold) {
+        Particle.publish("KAT SAID", String(temperature));
+    }
+    delay (sample_rate);
+}
 
 
-
-//this is the function that measures the voltage across the thermistor and 
-//calcualtes the resistance. a number of samples are collected and averaged,
-//NUMSAMPLES specifies this number above, to smooth noise
 double therm(int pin) {
   
   // take N samples in a row, with a slight delay
@@ -71,44 +74,3 @@ double therm(int pin) {
 //return the calculated value, which is a temperature!  
   return steinhart;
 }
-
-
-
-//setup
-void setup() {
-  // declare particle variables: temperature and brightness. You'll need to add brightness yourself. 
-  Particle.variable("temp", temperature);
-}
-
-
-
-//void loop. this runs continuously, so we use a delay to prevent your Argon
-//from freezing and to prevent a TON of data being sent to the cloud. 
-void loop() {
-//   //customizable delay
-  //delay(200);
-  
-  // temperature from therm function. Youll need to use the temperature variable you made above.
-  temperature = therm(thermPin);
-  
-  Particle.publish("temperature", temperature); //Particle.publish("temperature", temperature);
-}
-
-
-/// Function 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
