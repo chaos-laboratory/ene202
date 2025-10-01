@@ -29,6 +29,7 @@ void setup () {
 // Then, the subsequent lines switch the led on for 300ms, and then off for 3ms, several times. Feel free to edit this as desired.
 // Once the 'subscribed' channel stops transmitting a signal, the led will automatically stop blinking.
 void ledON(const char *event, const char *data) {
+    Particle.publish("PETER HEARD", String(data));
     digitalWrite(led, HIGH);
     delay(300);
     digitalWrite (led, LOW);

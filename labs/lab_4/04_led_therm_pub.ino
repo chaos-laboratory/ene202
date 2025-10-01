@@ -18,7 +18,7 @@ SerialLogHandler logHandler(LOG_LEVEL_INFO);
 // As well, specify your sample rate. 3*1000 = 3 seconds, and is the quickest we recommend. 5 to 10 seconds is totally fine.
 // Finally, specify the temperature 'threshold' above which you would like the led on the 'subscribing' microcontroller to turn on.
 int thermPin = A0;
-int sample_rate = 3*1000;
+int sample_rate = 1000;
 double temperature = 0;
 int threshold = 29;
 
@@ -31,6 +31,8 @@ int threshold = 29;
 uint16_t samples[NUMSAMPLES];
 uint8_t i;
 float average;
+
+bool led_on = false;
 
 //---------------------------------------------------------------------------
 
@@ -45,8 +47,11 @@ void setup() {
 // Importanly, we tell it to publish this value as a string, which will make it readable by the 'subscribe' command on the other microcontroller.
 void loop() {
     temperature = therm(thermPin);
-    if(temperature >= threshold) {
+    if((temperature >= threshold) && (!led_on)) {
+        led_on = true;
         Particle.publish("KAT SAID", String(temperature));
+    } else if (temperature < threshold) {
+        led_on = false;
     }
     delay (sample_rate);
 }
