@@ -52,7 +52,6 @@ void setup() {
     Particle.variable("SHT31_Humidity", SHT31_Humidity);
     
     // 2.3 FUNCTIONS THAT YOU CAN ACTUATE OR EDIT DIRECTLY IN PARTICLE CONSOLE / PHONE APP 
-    Particle.function("Thermistor_Threshold", Set_Thermistor_Threshold);
     Particle.function("SHT31_Humidity_Threshold", Set_SHT31_Humidity_Threshold);
     
  }
@@ -69,9 +68,9 @@ void loop() {
     
     // SHT31 + FAN: 
     if(SHT31_Humidity >= SHT31_Humidity_Threshold) {
-        digitalWrite(OnOffPin3, set3 = 1);
+        digitalWrite(OnOffPin1, set1 = 1);
     } else if (SHT31_Humidity < SHT31_Humidity_Threshold) {
-        digitalWrite(OnOffPin3, set3 = 0);
+        digitalWrite(OnOffPin1, set1 = 0);
     }
     
     delay (Sample_Rate);
