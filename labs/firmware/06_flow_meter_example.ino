@@ -3,6 +3,8 @@
 
 int FLOW_PIN_1 = D5;
 int pulse_count_1 = 0;
+double flow_rate_1 = 0;
+double running_pulse_count_1 = 0;
 
 int sample_rate = 1000;
 
