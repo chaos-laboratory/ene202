@@ -33,8 +33,6 @@ void setLED(double temp){                                           // we are no
     brightness = constrain(brightness, 0, 255);                     // the constrain function converts any low or high values exceeding the tempLow & tempHigh bounds into respectively the low or high limits; effectively, it overwrites the old brightness with the new brightness. This prevents miscalculation that ay inadvertently turn the LED on
     analogWrite(LEDpin, brightness);
 }
-
-0.
 //-------------------------------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------------------------------
 // 2 SETUP - HAPPENS ONLY ONCE IN CODE
