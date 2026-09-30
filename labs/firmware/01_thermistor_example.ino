@@ -1,50 +1,32 @@
 //libraries that must be included
-
-#include "math.h"
-#include <application.h>
-
-
-/* USER INPUT, do not worry about these things...or change them */
+#include "math.h" // lets math happen like log() etc.
+#include <Particle.h> // has all the Partilce.io device specfici functions
 
 
 int sample_rate = 2*1000; //the rate at which the sensor will collect and publish data to the internet
 //pro tip: keep the 1000. particle time is in milliseconds, so a delay rate of
-//5 seconds needs to be coded as 5000, this the *1000
 
-
-
-//defined constants
-#define TEMPERATURENOMINAL 25   
-// how many samples to take and average, more takes longer
-// but is more 'smooth'
-#define NUMSAMPLES 5
-// The beta coefficient of the thermistor (usually 3000-4000)
-#define BCOEFFICIENT 3950
-// the value of the 'other' resistor
-#define SERIESRESISTOR 10000  
-uint16_t samples[NUMSAMPLES];
-  uint8_t i;
-  float average;
- 
-// What pin to connect the sensor to
-int globePin = A0; 
+// What pin to connect the thermistor to
+int thermPin = A0;
 
 //global variable definition for the temperature
-double temperature = 0;
+double temperature;
 
+//declare functions should happen above loop() which uses the function
+double therm (int pin);
 
-//setup loop - this always runs once when the device first starts up
+//MAIN DEVICE setup - this always runs once when the device first starts up
 void setup() {
     //variable command creates a cloud variable that the temperature variable will be stored to called "temp"
     Particle.variable("temp",temperature);
 }
 
-//void loop. this runs continuously, so we use a delay to prevent your Argon
+//MAIN DEVICE REPEATING LOOP. this runs continuously, so we use a delay to prevent your Argon
 //from freezing and to prevent a TON of data being sent to the cloud. You can
 //customize this rate by changing the value of sample_rate above.
 void loop() {
     //read the temperature of the thermistor using the function "therm" below    
-    temperature = therm(globePin); //read the thermistor
+    temperature = therm(thermPin); //read the thermistor using the function defined below
 }
 
 
@@ -53,34 +35,36 @@ void loop() {
 //NUMSAMPLES specifies this number above, to smooth noise
 double therm(int pin) {
   
-  // take N samples in a row, with a slight delay
-  for (i=0; i< NUMSAMPLES; i++) {
-   samples[i] = analogRead(pin);
-   delay(10);
-  }
-  // average all the samples out
-  average = 0;
-  for (i=0; i< NUMSAMPLES; i++) {
-     average += samples[i];
-  }
-  average /= NUMSAMPLES;
-  double reading = average;
+    // Sizes the array below, so this has to be a compile-time integer constant.
+    constexpr uint8_t NUMSAMPLES = 5;            // number of ADC samples to average per reading
+    constexpr double TEMPERATURENOMINAL = 25;    // nominal temp (deg C) for BCOEFFICIENT
+    constexpr uint16_t BCOEFFICIENT = 3950;      // thermistor's Beta coefficient (unitless whole number)
+    constexpr uint32_t SERIESRESISTOR = 10000;   // resistance (ohms) of the other resistor in the divider
+    constexpr uint16_t ADC_MAX = 4095;           // 12-bit ADC on the Argon/Boron/etc. (0-4095)
 
-  // convert the value to resistance
-  reading = (4095 / reading)  - 1;     // (4095/ADC - 1) 
-  reading = SERIESRESISTOR / reading;  // 10K / (1023/ADC - 1)
-  
-  //the steinart method is a standard method of mapping the resistance reading
-  //to a temperature
-  float steinhart;
-  steinhart = reading / SERIESRESISTOR;     // (R/Ro)
-  steinhart = log(steinhart);                  // ln(R/Ro)
-  steinhart /= BCOEFFICIENT;                   // 1/B * ln(R/Ro)
-  steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15); // + (1/To)
-  steinhart = 1.0 / steinhart;                 // Invert
-  steinhart -= 273.15;                         // convert to C
-  
-  
-//return the calculated value, which is a temperature!  
-  return steinhart;
+    uint16_t samples[NUMSAMPLES];
+    for (uint8_t i = 0; i < NUMSAMPLES; i++) {
+        samples[i] = analogRead(pin);
+        delay(10);
+    }
+
+    float average = 0;
+    for (uint8_t i = 0; i < NUMSAMPLES; i++) {
+        average += samples[i];
+    }
+    average /= NUMSAMPLES;
+
+    // Convert the averaged ADC reading to resistance
+    double resistance = (ADC_MAX / average) - 1;   // (ADC_MAX/ADC - 1)
+    resistance = SERIESRESISTOR / resistance;      // SERIESRESISTOR / (ADC_MAX/ADC - 1)
+
+    // Steinhart-Hart approximation: resistance -> temperature (Celsius)
+    double steinhart = resistance / SERIESRESISTOR;    // (R/Ro)
+    steinhart = log(steinhart);                         // ln(R/Ro)
+    steinhart /= BCOEFFICIENT;                          // 1/B * ln(R/Ro)
+    steinhart += 1.0 / (TEMPERATURENOMINAL + 273.15);   // + (1/To)
+    steinhart = 1.0 / steinhart;                        // invert
+    steinhart -= 273.15;                                // Kelvin -> Celsius
+
+    return steinhart;
 }
